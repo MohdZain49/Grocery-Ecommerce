@@ -62,7 +62,7 @@ function Navbar() {
                 alt="profile_image"
                 className="w-10"
               />
-              <ul className="hidden group-hover:block absolute top-10 right-0 bg-white shadow border border-gray-200 py-2.5 rounded-md text-sm w-25">
+              <ul className="hidden group-hover:block absolute top-10 right-0 bg-white shadow border border-gray-200 py-2.5 rounded-md text-sm w-25 z-10">
                 <li
                   onClick={() => navigate("my-orders")}
                   className="p-1.5 pl-3 hover:bg-primary/10 cursor-pointer"
@@ -92,7 +92,7 @@ function Navbar() {
         <div
           className={`${
             open ? "flex" : "hidden"
-          } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}
+          } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden z-10`}
         >
           <NavLink to="/" onClick={() => setOpen(false)}>
             Home

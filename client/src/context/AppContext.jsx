@@ -18,6 +18,7 @@ export const AppContext = createContext({
   cartItems: {},
   searchQuery: {},
   setSearchQuery: () => {},
+  navigate: () => {},
 });
 
 export const AppContextProvider = ({ children }) => {

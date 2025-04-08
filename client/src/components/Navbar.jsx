@@ -5,18 +5,26 @@ import { useAppContext } from "../context/AppContext";
 
 function Navbar() {
   const [open, setOpen] = React.useState(false);
-  const { navigate, user, setUser, setShowUserLogin, searchQuery, setSearchQuery } = useAppContext();
+  const {
+    navigate,
+    user,
+    setUser,
+    setShowUserLogin,
+    searchQuery,
+    setSearchQuery,
+    getCartCount,
+  } = useAppContext();
 
   const handleLogout = async () => {
     setUser(null);
     navigate("/");
   };
 
-  useEffect(() => { 
-    if(searchQuery.length > 0) {
+  useEffect(() => {
+    if (searchQuery.length > 0) {
       navigate("/products");
     }
-  }, [searchQuery])
+  }, [searchQuery]);
 
   return (
     <div>
@@ -51,7 +59,7 @@ function Navbar() {
               className="w-6 opacity-80"
             />
             <button className="absolute -top-2 -right-3 text-xs text-white bg-primary w-[18px] h-[18px] rounded-full">
-              3
+              {getCartCount()}
             </button>
           </div>
 
@@ -88,13 +96,30 @@ function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        <button
-          onClick={() => (open ? setOpen(false) : setOpen(true))}
-          aria-label="Menu"
-          className="sm:hidden"
-        >
-          <img src={assets.menu_icon} alt="menu" />
-        </button>
+
+        <div className="flex items-center gap=6 sm:hidden">
+          <div
+            className="relative cursor-pointer mr-8"
+            onClick={() => navigate("cart")}
+          >
+            <img
+              src={assets.nav_cart_icon}
+              alt="cart"
+              className="w-6 opacity-80"
+            />
+            <button className="absolute -top-2 -right-3 text-xs text-white bg-primary w-[18px] h-[18px] rounded-full">
+              {getCartCount()}
+            </button>
+          </div>
+
+          <button
+            onClick={() => (open ? setOpen(false) : setOpen(true))}
+            aria-label="Menu"
+            className="sm:hidden"
+          >
+            <img src={assets.menu_icon} alt="menu" />
+          </button>
+        </div>
 
         <div
           className={`${

@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
-const authUser = async (req, res, next) => {
-  const { token } = req.cookies;
+const authSeller = async (req, res, next) => {
+  const { sellerToken } = req.cookies;
 
-  if (!token) {
+  if (!sellerToken) {
     return res.json({
       success: false,
       message: "Not Authorized",
@@ -11,16 +11,15 @@ const authUser = async (req, res, next) => {
   }
 
   try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    if (decodedToken.id) {
-      req.userId = decodedToken.id;
+    const decodedToken = jwt.verify(sellerToken, process.env.JWT_SECRET);
+    if (decodedToken.email === process.env.SELLER_EMAIL) {
+      next();
     } else {
       return res.json({
         success: false,
         message: "Not Authorized",
       });
     }
-    next();
   } catch (error) {
     return res.json({
       success: false,
@@ -29,4 +28,4 @@ const authUser = async (req, res, next) => {
   }
 };
 
-export default authUser;
+export default authSeller;

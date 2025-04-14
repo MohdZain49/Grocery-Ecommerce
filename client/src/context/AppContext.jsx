@@ -2,6 +2,10 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyProducts } from "../assets/assets";
 import toast from "react-hot-toast";
+import axios from "axios";
+
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 export const AppContext = createContext({
   user: null,
@@ -21,6 +25,8 @@ export const AppContext = createContext({
   navigate: () => {},
   getCartCount: () => {},
   getCartAmount: () => {},
+  axios: () => {},
+  fetchProducts: () => {},
 });
 
 export const AppContextProvider = ({ children }) => {
@@ -34,8 +40,30 @@ export const AppContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState({});
 
-  const fetchProducts = () => {
-    setProducts(dummyProducts);
+  const fetchProducts = async () => {
+    try {
+      const { data } = await axios.get("/api/product/list");
+      if (data.success) {
+        setProducts(data.products);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const fetchSeller = async () => {
+    try {
+      const { data } = await axios.get("/api/seller/is-auth");
+      if (data.success) {
+        setIsSeller(true);
+      } else {
+        setIsSeller(false);
+      }
+    } catch (error) {
+      setIsSeller(false);
+    }
   };
 
   const addToCart = (itemId) => {
@@ -80,20 +108,22 @@ export const AppContextProvider = ({ children }) => {
   const getCartAmount = () => {
     let totalAmount = 0;
     for (const items in cartItems) {
-      let itmeInfo = products.find((product) => product._id === items);
+      let itemInfo = products.find((product) => product._id === items);
       if (cartItems[items] > 0) {
-        totalAmount += itmeInfo.offerPrice * cartItems[items];
+        totalAmount += itemInfo.offerPrice * cartItems[items];
       }
     }
     return Math.floor(totalAmount * 100) / 100;
   };
 
   useEffect(() => {
+    fetchSeller();
     fetchProducts();
   }, []);
 
   const value = {
     navigate,
+    axios,
     user,
     setUser,
     isSeller,
@@ -110,6 +140,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartAmount,
     getCartCount,
+    fetchProducts,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

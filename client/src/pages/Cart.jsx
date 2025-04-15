@@ -26,7 +26,6 @@ function Cart() {
       const product = products.find((item) => item._id === key);
       product.quantity = cartItems[key];
       tempArray.push(product);
-      console.log("temparory array ", tempArray);
     }
     setCartArray(tempArray);
   };
@@ -208,13 +207,13 @@ function Cart() {
           <p className="flex justify-between">
             <span>Tax (2%)</span>
             <span>
-              {currency} {getCartAmount() * 2}
+              {currency} {getCartAmount() * 0.02}
             </span>
           </p>
           <p className="flex justify-between text-lg font-medium mt-3">
             <span>Total Amount:</span>
             <span>
-              {currency} {getCartAmount() + getCartAmount() * 2}
+              {currency} {getCartAmount() + getCartAmount() * 0.02}
             </span>
           </p>
         </div>

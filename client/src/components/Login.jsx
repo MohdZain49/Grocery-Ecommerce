@@ -7,15 +7,27 @@ const Login = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
 
-  const { setShowUserLogin, setUser } = useAppContext();
+  const { setShowUserLogin, setUser, axios, navigate } = useAppContext();
 
   const onSubmitHandler = async (e) => {
-    e.preventDefault();
-    setUser({
-      email: "test@gmail.com",
-      name: "Test User",
-    })
-    setShowUserLogin(false);
+    try {
+      e.preventDefault();
+      const { data } = await axios.post(`/api/user/${state}`, {
+        name,
+        email,
+        password,
+      });
+
+      if (data.success) {
+        navigate("/");
+        setUser(data.user);
+        setShowUserLogin(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   return (

@@ -7,7 +7,7 @@ function AllProduct() {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
-    if (searchQuery.length > 0) {
+    if (searchQuery && searchQuery.length > 0) {
       const filtered = products.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -27,7 +27,7 @@ function AllProduct() {
         {filteredProducts
           .filter((product) => product.inStock)
           .map((product, index) => (
-            <ProductCard key={index} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
       </div>
     </div>

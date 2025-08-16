@@ -14,6 +14,8 @@ const ProductDetails = () => {
 
   const [relatedProducts, setRelatedProducts] = useState([]);
 
+  console.log(product)
+
   useEffect(() => {
     if (product) {
       setThumbnail(product?.image[0] || null);
@@ -102,7 +104,7 @@ const ProductDetails = () => {
               </button>
               <button
                 onClick={() => {
-                  addToCart(product.id);
+                  addToCart(product._id);
                   navigate("/cart");
                 }}
                 className="w-full py-3.5 cursor-pointer font-medium bg-primary text-white hover:bg-primary-dull transition"

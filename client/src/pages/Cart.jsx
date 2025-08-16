@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
-import { assets, dummyAddress } from "../assets/assets";
+import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 
 function Cart() {
@@ -24,16 +24,20 @@ function Cart() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentOption, setPaymentOption] = useState("COD");
 
+  // Get products in cart
   const getCart = () => {
     let tempArray = [];
     for (const key in cartItems) {
       const product = products.find((item) => item._id === key);
-      product.quantity = cartItems[key];
-      tempArray.push(product);
+      if (product) {
+        product.quantity = cartItems[key];
+        tempArray.push(product);
+      }
     }
     setCartArray(tempArray);
   };
 
+  // Fetch user addresses
   const getUserAddress = async () => {
     try {
       const { data } = await axios.get("/api/address/get");
@@ -50,6 +54,7 @@ function Cart() {
     }
   };
 
+  // Place order
   const placeOrder = async () => {
     try {
       if (!selectedAddress) {
@@ -58,15 +63,18 @@ function Cart() {
       if (cartArray.length === 0) {
         return toast.error("Your cart is empty");
       }
+
+      const payload = {
+        userId: user._id,
+        items: cartArray.map((item) => ({
+          product: item._id,
+          quantity: item.quantity,
+        })),
+        address: selectedAddress._id,
+      };
+
       if (paymentOption === "COD") {
-        const { data } = await axios.post("/api/order/cod", {
-          userId: user._id,
-          items: cartArray.map((item) => ({
-            product: item._id,
-            quantity: item.quantity,
-          })),
-          address: selectedAddress._id,
-        });
+        const { data } = await axios.post("/api/order/cod", payload);
 
         if (data.success) {
           toast.success(data.message);
@@ -75,33 +83,27 @@ function Cart() {
         } else {
           toast.error(data.message);
         }
-      } else { 
-         const { data } = await axios.post("/api/order/stripe", {
-           userId: user._id,
-           items: cartArray.map((item) => ({
-             product: item._id,
-             quantity: item.quantity,
-           })),
-           address: selectedAddress._id,
-         });
-
-         if (data.success) {
-           window.location.replace(data.url)
-         } else {
-           toast.error(data.message);
-         }
+      } else {
+        const { data } = await axios.post("/api/order/stripe", payload);
+        if (data.success) {
+          window.location.href = data.url;
+        } else {
+          toast.error(data.message);
+        }
       }
     } catch (error) {
       toast.error(error.message);
     }
   };
 
+  // Load cart when products/cartItems change
   useEffect(() => {
     if (products.length > 0 && cartItems) {
       getCart();
     }
   }, [products, cartItems]);
 
+  // Load addresses when user logs in
   useEffect(() => {
     if (user) {
       getUserAddress();
@@ -109,7 +111,8 @@ function Cart() {
   }, [user]);
 
   return products.length > 0 && cartItems ? (
-    <div className="flex flex-col md:flex-row mt-16 ">
+    <div className="flex flex-col md:flex-row mt-16">
+      {/* Left: Cart Items */}
       <div className="flex-1 max-w-4xl">
         <h1 className="text-3xl font-medium mb-6">
           Shopping Cart{" "}
@@ -122,18 +125,19 @@ function Cart() {
           <p className="text-center">Action</p>
         </div>
 
-        {cartArray.map((product, index) => (
+        {cartArray.map((product) => (
           <div
-            key={index}
+            key={product._id}
             className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 items-center text-sm md:text-base font-medium pt-3"
           >
+            {/* Product Info */}
             <div className="flex items-center md:gap-6 gap-3">
               <div
                 onClick={() => {
                   navigate(
                     `/products/${product.category.toLowerCase()}/${product._id}`
                   );
-                  scrollTo(0, 0);
+                  window.scrollTo(0, 0);
                 }}
                 className="cursor-pointer w-24 h-24 flex items-center justify-center border border-gray-300 rounded"
               >
@@ -147,7 +151,7 @@ function Cart() {
                 <p className="hidden md:block font-semibold">{product.name}</p>
                 <div className="font-normal text-gray-500/70">
                   <p>
-                    Weight: <span>{product.weoght || "N/A"}</span>
+                    Weight: <span>{product.weight || "N/A"}</span>
                   </p>
                   <div className="flex items-center">
                     <p>Qty:</p>
@@ -172,10 +176,14 @@ function Cart() {
                 </div>
               </div>
             </div>
+
+            {/* Price */}
             <p className="text-center">
               {currency}
-              {product.offerPrice * product.quantity}
+              {(product.offerPrice * product.quantity).toFixed(2)}
             </p>
+
+            {/* Remove */}
             <button
               className="cursor-pointer mx-auto"
               onClick={() => removeCartItem(product._id)}
@@ -189,10 +197,11 @@ function Cart() {
           </div>
         ))}
 
+        {/* Continue Shopping */}
         <button
           onClick={() => {
             navigate("/products");
-            scrollTo(0, 0);
+            window.scrollTo(0, 0);
           }}
           className="group cursor-pointer flex items-center mt-8 gap-2 text-primary font-medium"
         >
@@ -205,10 +214,12 @@ function Cart() {
         </button>
       </div>
 
+      {/* Right: Order Summary */}
       <div className="max-w-[360px] w-full bg-gray-100/40 p-5 max-md:mt-16 border border-gray-300/70">
-        <h2 className="text-xl md:text-xl font-medium">Order Summary</h2>
+        <h2 className="text-xl font-medium">Order Summary</h2>
         <hr className="border-gray-300 my-5" />
 
+        {/* Delivery Address */}
         <div className="mb-6">
           <p className="text-sm font-medium uppercase">Delivery Address</p>
           <div className="relative flex justify-between items-start mt-2">
@@ -224,10 +235,10 @@ function Cart() {
               Change
             </button>
             {showAddress && (
-              <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full">
-                {addresses.map((address, index) => (
+              <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full z-10">
+                {addresses.map((address) => (
                   <p
-                    key={index}
+                    key={address._id}
                     onClick={() => {
                       setSelectedAddress(address);
                       setShowAddress(false);
@@ -235,10 +246,9 @@ function Cart() {
                     className="text-gray-500 p-2 hover:bg-gray-100"
                   >
                     {address.street}, {address.city}, {address.state},{" "}
-                    {address.country},
+                    {address.country}
                   </p>
                 ))}
-
                 <p
                   onClick={() => navigate("/add-address")}
                   className="text-primary text-center cursor-pointer p-2 hover:bg-primary/10"
@@ -249,10 +259,11 @@ function Cart() {
             )}
           </div>
 
+          {/* Payment Method */}
           <p className="text-sm font-medium uppercase mt-6">Payment Method</p>
-
           <select
             onChange={(e) => setPaymentOption(e.target.value)}
+            value={paymentOption}
             className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none"
           >
             <option value="COD">Cash On Delivery</option>
@@ -262,12 +273,13 @@ function Cart() {
 
         <hr className="border-gray-300" />
 
+        {/* Price Summary */}
         <div className="text-gray-500 mt-4 space-y-2">
           <p className="flex justify-between">
             <span>Price</span>
             <span>
               {currency}
-              {getCartAmount()}
+              {getCartAmount().toFixed(2)}
             </span>
           </p>
           <p className="flex justify-between">
@@ -277,17 +289,20 @@ function Cart() {
           <p className="flex justify-between">
             <span>Tax (2%)</span>
             <span>
-              {currency} {getCartAmount() * 0.02}
+              {currency}
+              {(getCartAmount() * 0.02).toFixed(2)}
             </span>
           </p>
           <p className="flex justify-between text-lg font-medium mt-3">
             <span>Total Amount:</span>
             <span>
-              {currency} {getCartAmount() + getCartAmount() * 0.02}
+              {currency}
+              {(getCartAmount() + getCartAmount() * 0.02).toFixed(2)}
             </span>
           </p>
         </div>
 
+        {/* Place Order */}
         <button
           onClick={placeOrder}
           className="w-full py-3 mt-6 cursor-pointer bg-primary text-white font-medium hover:bg-primary-dull transition"
